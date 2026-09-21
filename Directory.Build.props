@@ -1,0 +1,11 @@
+<Project>
+  <!-- Git-based versioning: versi diambil dari git tag (mis. v0.0.1).
+       Bukan hardcode — tanpa tag, build lokal jadi 0.0.0-alpha. -->
+  <PropertyGroup>
+    <!-- Tag di repo ini pakai prefix v (v0.0.1), jadi prefix wajib diset -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+</Project>

@@ -12,6 +12,9 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Wajib full history + tags agar MinVer bisa baca versi dari tag rilis
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
