@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using SuryPos.Data.Repositories;
 using SuryPos.Domain.Interfaces;
 using SuryPos.Service.Services;
@@ -6,8 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1. Register Controllers & OpenAPI/Swagger
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddOpenApi();
 
 // 2. Register Dependency Injection (DI)
@@ -24,8 +23,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapScalarApiReference();
 }
 
 app.UseAuthorization();
