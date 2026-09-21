@@ -5,7 +5,7 @@ using SuryPos.Service.Services;
 namespace SuryPos.Api.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("pos")]
 public class PosController(IPosService posService) : ControllerBase
 {
     [HttpGet("products")]
