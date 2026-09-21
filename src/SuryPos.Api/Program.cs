@@ -18,7 +18,7 @@ builder.Services.AddControllers()
             var errors = context.ModelState
                 .Where(e => e.Value?.Errors.Count > 0)
                 .ToDictionary(
-                    kvp => kvp.Key,
+                    kvp => ValidationErrorKeys.Normalize(kvp.Key),
                     kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
 
             return new BadRequestObjectResult(new { title = "Validation Error", errors });

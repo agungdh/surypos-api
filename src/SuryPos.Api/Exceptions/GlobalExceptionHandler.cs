@@ -14,7 +14,7 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
         if (exception is ValidationException validationEx)
         {
             var errors = validationEx.Errors
-                .GroupBy(e => e.PropertyName)
+                .GroupBy(e => ValidationErrorKeys.Normalize(e.PropertyName))
                 .ToDictionary(
                     g => g.Key,
                     g => g.Select(e => e.ErrorMessage).ToArray());
