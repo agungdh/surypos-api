@@ -3,7 +3,7 @@ LAUNCH_PROFILE := http
 
 .DEFAULT_GOAL := help
 
-.PHONY: help start watch dev run build restore clean
+.PHONY: help start watch dev run build restore clean test
 
 help: ## Tampilkan daftar perintah yang tersedia (default)
 	@echo "Usage: make [target]"
@@ -23,6 +23,9 @@ run: ## Jalankan API tanpa watch
 
 build: ## Build solution
 	dotnet build
+
+test: ## Jalankan semua test
+	dotnet test
 
 restore: ## Restore dependencies
 	dotnet restore

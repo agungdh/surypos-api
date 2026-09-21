@@ -5,4 +5,7 @@
     <Project Path="src/SuryPos.Domain/SuryPos.Domain.csproj" />
     <Project Path="src/SuryPos.Service/SuryPos.Service.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SuryPos.Tests/SuryPos.Tests.csproj" />
+  </Folder>
 </Solution>
