@@ -14,4 +14,4 @@ public record TransactionResponseDto(
 );
 
 public record CheckoutItemDto(Guid ProductId, int Quantity);
-public record CheckoutRequestDto(List<CheckoutItemDto> Items);
+public record CheckoutRequestDto(List<CheckoutItemDto>? Items);

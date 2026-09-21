@@ -27,22 +27,12 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             return true;
         }
 
-        var (statusCode, title, detail) = exception switch
-        {
-            ArgumentException => ((int)HttpStatusCode.BadRequest, "Bad Request", exception.Message),
-            KeyNotFoundException => ((int)HttpStatusCode.NotFound, "Not Found", exception.Message),
-            InvalidOperationException => ((int)HttpStatusCode.UnprocessableEntity, "Invalid Operation", exception.Message),
-            _ => ((int)HttpStatusCode.InternalServerError, "Server Error", "Terjadi kesalahan internal pada server.")
-        };
+        // Semua yang lolos validasi tapi gagal di sini = error tak terduga -> 5xx + log.
+        logger.LogError(exception, "Terjadi kesalahan: {Message}", exception.Message);
 
-        if (statusCode >= (int)HttpStatusCode.InternalServerError)
-        {
-            logger.LogError(exception, "Terjadi kesalahan: {Message}", exception.Message);
-        }
-
-        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
         await httpContext.Response.WriteAsJsonAsync(
-            new { title, detail },
+            new { title = "Server Error", detail = "Terjadi kesalahan internal pada server." },
             cancellationToken);
 
         return true;

@@ -37,13 +37,11 @@ public class PosService(
             InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMddHHmmss}"
         };
 
-        foreach (var item in request.Items)
+        foreach (var item in request.Items!)
         {
-            var product = productRepo.GetById(item.ProductId)
-                ?? throw new KeyNotFoundException($"Produk dengan ID '{item.ProductId}' tidak ditemukan!");
-
-            if (product.Stock < item.Quantity)
-                throw new InvalidOperationException($"Stok produk '{product.Name}' tidak mencukupi! Sisa stok: {product.Stock}");
+            // Validator menjamin produk ada & stok cukup.
+            // Kalau di sini null, berarti kondisi balapan/gangguan DB -> biar jadi 5xx.
+            var product = productRepo.GetById(item.ProductId)!;
 
             // Potong stok produk
             productRepo.UpdateStock(product.Id, item.Quantity);

@@ -19,7 +19,10 @@ public class ProductRepository : IProductRepository
 
     public void UpdateStock(Guid id, int qtyToReduce)
     {
-        var product = GetById(id);
-        product?.Stock -= qtyToReduce;
+        // Validator menjamin produk ada. Kalau hilang di sini (race/gangguan),
+        // lempar agar jadi 5xx, jangan diam-diam.
+        var product = GetById(id)
+            ?? throw new InvalidOperationException($"Produk dengan ID '{id}' tidak ditemukan saat pengurangan stok!");
+        product.Stock -= qtyToReduce;
     }
 }
