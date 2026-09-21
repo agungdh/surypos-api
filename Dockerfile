@@ -8,6 +8,8 @@ COPY src/SuryPos.Api/SuryPos.Api.csproj src/SuryPos.Api/
 COPY src/SuryPos.Data/SuryPos.Data.csproj src/SuryPos.Data/
 COPY src/SuryPos.Domain/SuryPos.Domain.csproj src/SuryPos.Domain/
 COPY src/SuryPos.Service/SuryPos.Service.csproj src/SuryPos.Service/
+COPY tests/SuryPos.Api.Tests/SuryPos.Api.Tests.csproj tests/SuryPos.Api.Tests/
+COPY tests/SuryPos.Service.Tests/SuryPos.Service.Tests.csproj tests/SuryPos.Service.Tests/
 RUN dotnet restore SuryPosApp.slnx
 
 # Copy sisa source lalu publish
