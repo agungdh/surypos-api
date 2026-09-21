@@ -1,5 +1,3 @@
-using System;
-
 namespace SuryPos.Domain.Entities;
 
 public class Product
