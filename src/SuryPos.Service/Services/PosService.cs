@@ -10,20 +10,11 @@ public interface IPosService
     TransactionResponseDto Checkout(CheckoutRequestDto request);
 }
 
-public class PosService : IPosService
+public class PosService(IProductRepository productRepo, ITransactionRepository transactionRepo) : IPosService
 {
-    private readonly IProductRepository _productRepo;
-    private readonly ITransactionRepository _transactionRepo;
-
-    public PosService(IProductRepository productRepo, ITransactionRepository transactionRepo)
-    {
-        _productRepo = productRepo;
-        _transactionRepo = transactionRepo;
-    }
-
     public IEnumerable<ProductDto> GetProducts()
     {
-        return _productRepo.GetAll()
+        return productRepo.GetAll()
             .Select(p => new ProductDto(p.Id, p.Name, p.Price, p.Stock));
     }
 
@@ -39,14 +30,14 @@ public class PosService : IPosService
 
         foreach (var item in request.Items)
         {
-            var product = _productRepo.GetById(item.ProductId)
+            var product = productRepo.GetById(item.ProductId)
                 ?? throw new KeyNotFoundException($"Produk dengan ID '{item.ProductId}' tidak ditemukan!");
 
             if (product.Stock < item.Quantity)
                 throw new InvalidOperationException($"Stok produk '{product.Name}' tidak mencukupi! Sisa stok: {product.Stock}");
 
             // Potong stok produk
-            _productRepo.UpdateStock(product.Id, item.Quantity);
+            productRepo.UpdateStock(product.Id, item.Quantity);
 
             // Tambahkan ke rincian nota
             transaction.Items.Add(new TransactionItem
@@ -59,7 +50,7 @@ public class PosService : IPosService
         }
 
         // Simpan nota ke repository
-        _transactionRepo.Save(transaction);
+        transactionRepo.Save(transaction);
 
         // Map ke Response DTO
         var itemDtos = transaction.Items
