@@ -1,25 +1,35 @@
+using FluentValidation;
 using Scalar.AspNetCore;
+using SuryPos.Api.Exceptions;
 using SuryPos.Data.Repositories;
 using SuryPos.Domain.Interfaces;
 using SuryPos.Service.Services;
+using SuryPos.Service.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Register Controllers & OpenAPI/Swagger
+// 1. Register Controllers & OpenAPI/Scalar
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
-// 2. Register Dependency Injection (DI)
-// Registrasi Repository sebagai Singleton agar data In-Memory tidak reset tiap request HTTP
+// 2. Register Dependency Injection (DI) - Repositories & Services
 builder.Services.AddSingleton<IProductRepository, ProductRepository>();
 builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
-
-// Registrasi Service sebagai Scoped (standar best practice untuk business logic)
 builder.Services.AddScoped<IPosService, PosService>();
+
+// 3. Register FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<CheckoutRequestValidator>();
+
+// 4. Register Global Exception Handler
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// 3. Configure HTTP request pipeline
+// 5. Configure HTTP Request Pipeline
+// Disarankan UseExceptionHandler dipasang di paling atas middleware pipeline
+app.UseExceptionHandler();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

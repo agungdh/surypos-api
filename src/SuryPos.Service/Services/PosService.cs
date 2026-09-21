@@ -1,3 +1,4 @@
+using FluentValidation;
 using SuryPos.Domain.Entities;
 using SuryPos.Domain.Interfaces;
 using SuryPos.Service.DTOs;
@@ -10,7 +11,10 @@ public interface IPosService
     TransactionResponseDto Checkout(CheckoutRequestDto request);
 }
 
-public class PosService(IProductRepository productRepo, ITransactionRepository transactionRepo) : IPosService
+public class PosService(
+    IProductRepository productRepo, 
+    ITransactionRepository transactionRepo,
+    IValidator<CheckoutRequestDto> checkoutValidator) : IPosService
 {
     public IEnumerable<ProductDto> GetProducts()
     {
@@ -20,9 +24,14 @@ public class PosService(IProductRepository productRepo, ITransactionRepository t
 
     public TransactionResponseDto Checkout(CheckoutRequestDto request)
     {
-        if (request.Items == null || request.Items.Count == 0)
-            throw new ArgumentException("Keranjang belanja tidak boleh kosong!");
+        // 1. Eksekusi FluentValidation
+        var validationResult = checkoutValidator.Validate(request);
+        if (!validationResult.IsValid)
+        {
+            throw new ValidationException(validationResult.Errors);
+        }
 
+        // 2. Logika Bisnis In-Memory
         var transaction = new Transaction
         {
             InvoiceNumber = $"INV-{DateTime.UtcNow:yyyyMMddHHmmss}"
