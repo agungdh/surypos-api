@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 
-namespace SuryPos.Tests.Api;
+namespace SuryPos.Api.Tests;
 
 public class CheckoutApiTests : IClassFixture<WebApplicationFactory<Program>>
 {

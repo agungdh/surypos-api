@@ -5,7 +5,7 @@ using SuryPos.Service.DTOs;
 using SuryPos.Service.Services;
 using SuryPos.Service.Validators;
 
-namespace SuryPos.Tests.Services;
+namespace SuryPos.Service.Tests.Services;
 
 public class PosServiceTests
 {

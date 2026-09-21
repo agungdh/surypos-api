@@ -3,7 +3,7 @@ using SuryPos.Domain.Interfaces;
 using SuryPos.Service.DTOs;
 using SuryPos.Service.Validators;
 
-namespace SuryPos.Tests.Validators;
+namespace SuryPos.Service.Tests.Validators;
 
 public class CheckoutValidationTests
 {

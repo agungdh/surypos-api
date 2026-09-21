@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SuryPos.Api.Exceptions;
 
-namespace SuryPos.Tests.Api;
+namespace SuryPos.Api.Tests;
 
 public class GlobalExceptionHandlerTests
 {

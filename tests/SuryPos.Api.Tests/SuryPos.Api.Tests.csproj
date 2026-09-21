@@ -16,8 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SuryPos.Api\SuryPos.Api.csproj" />
-    <ProjectReference Include="..\..\src\SuryPos.Service\SuryPos.Service.csproj" />
-    <ProjectReference Include="..\..\src\SuryPos.Data\SuryPos.Data.csproj" />
   </ItemGroup>
 
   <ItemGroup>

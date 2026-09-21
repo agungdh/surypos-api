@@ -6,6 +6,7 @@
     <Project Path="src/SuryPos.Service/SuryPos.Service.csproj" />
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="tests/SuryPos.Tests/SuryPos.Tests.csproj" />
+    <Project Path="tests/SuryPos.Api.Tests/SuryPos.Api.Tests.csproj" />
+    <Project Path="tests/SuryPos.Service.Tests/SuryPos.Service.Tests.csproj" />
   </Folder>
 </Solution>
