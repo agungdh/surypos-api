@@ -18,22 +18,9 @@ public class PosController(IPosService posService) : ControllerBase
     [HttpPost("checkout")]
     public IActionResult Checkout([FromBody] CheckoutRequestDto request)
     {
-        try
-        {
-            var result = posService.Checkout(request);
-            return Ok(result);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return UnprocessableEntity(new { message = ex.Message });
-        }
+        // Tanpa try-catch! 
+        // Kalau terjadi error, biarkan exception meluncur ke GlobalExceptionHandler
+        var result = posService.Checkout(request);
+        return Ok(result);
     }
 }
