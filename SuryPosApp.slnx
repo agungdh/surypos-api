@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SuryPos.Api/SuryPos.Api.csproj" />
+    <Project Path="src/SuryPos.Data/SuryPos.Data.csproj" />
+    <Project Path="src/SuryPos.Domain/SuryPos.Domain.csproj" />
+    <Project Path="src/SuryPos.Service/SuryPos.Service.csproj" />
+  </Folder>
+</Solution>
