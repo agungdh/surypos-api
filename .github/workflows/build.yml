@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__DefaultConnection: Host=127.0.0.1;Port=5432;Database=surypos;Username=admin;Password=admin
     steps:
       - uses: actions/checkout@v4
 
@@ -16,6 +18,24 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+
+      # Test butuh Postgres asli -> hidupkan service postgres dari docker-compose.
+      # Hanya postgres (tanpa valkey/minio/adminer) supaya CI cepat.
+      - name: Start postgres
+        run: docker compose up -d postgres
+
+      - name: Wait for postgres healthy
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose exec -T postgres pg_isready -U admin -d surypos; then
+              echo "postgres ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres tidak ready dalam 60 detik"
+          docker compose logs postgres
+          exit 1
 
       - name: Restore
         run: dotnet restore
@@ -25,3 +45,7 @@ jobs:
 
       - name: Test
         run: dotnet test --no-build --configuration Release
+
+      - name: Stop postgres
+        if: always()
+        run: docker compose down -v

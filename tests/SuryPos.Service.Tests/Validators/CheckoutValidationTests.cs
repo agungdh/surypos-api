@@ -7,27 +7,37 @@ namespace SuryPos.Service.Tests.Validators;
 
 public class CheckoutValidationTests
 {
-    private static readonly Guid CoffeeId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+    private const long CoffeeId = 1;
 
     private sealed class StubProductRepository : IProductRepository
     {
-        private readonly Dictionary<Guid, Product> _products = new()
+        private readonly Dictionary<long, Product> _products = new()
         {
             [CoffeeId] = new Product { Id = CoffeeId, Name = "Kopi", Price = 18000, Stock = 50 },
         };
 
-        public IEnumerable<Product> GetAll() => _products.Values;
-        public Product? GetById(Guid id) => _products.GetValueOrDefault(id);
-        public void UpdateStock(Guid id, int qtyToReduce) => _products[id].Stock -= qtyToReduce;
+        public Task<List<Product>> GetAllAsync(CancellationToken ct = default)
+            => Task.FromResult(_products.Values.ToList());
+
+        public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)
+            => Task.FromResult(_products.GetValueOrDefault(id));
+
+        public Task<bool> TryDecreaseStockAsync(long id, int qtyToReduce, CancellationToken ct = default)
+        {
+            if (!_products.TryGetValue(id, out var product) || product.Stock < qtyToReduce)
+                return Task.FromResult(false);
+            product.Stock -= qtyToReduce;
+            return Task.FromResult(true);
+        }
     }
 
     private static CheckoutRequestValidator CreateValidator()
         => new(new CheckoutItemDtoValidator(new StubProductRepository()));
 
     [Fact]
-    public void NullItems_IsInvalid_WithSingleError()
+    public async Task NullItems_IsInvalid_WithSingleError()
     {
-        var result = CreateValidator().Validate(new CheckoutRequestDto(null));
+        var result = await CreateValidator().ValidateAsync(new CheckoutRequestDto(null));
 
         Assert.False(result.IsValid);
         var error = Assert.Single(result.Errors);
@@ -36,9 +46,9 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void EmptyItems_IsInvalid()
+    public async Task EmptyItems_IsInvalid()
     {
-        var result = CreateValidator().Validate(new CheckoutRequestDto([]));
+        var result = await CreateValidator().ValidateAsync(new CheckoutRequestDto([]));
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e =>
@@ -46,11 +56,11 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void EmptyProductId_IsInvalid()
+    public async Task EmptyProductId_IsInvalid()
     {
-        var request = new CheckoutRequestDto([new CheckoutItemDto(Guid.Empty, 1)]);
+        var request = new CheckoutRequestDto([new CheckoutItemDto(0, 1)]);
 
-        var result = CreateValidator().Validate(request);
+        var result = await CreateValidator().ValidateAsync(request);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e =>
@@ -58,12 +68,11 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void UnknownProduct_IsInvalid()
+    public async Task UnknownProduct_IsInvalid()
     {
-        var request = new CheckoutRequestDto(
-            [new CheckoutItemDto(Guid.Parse("99999999-9999-9999-9999-999999999999"), 1)]);
+        var request = new CheckoutRequestDto([new CheckoutItemDto(9999, 1)]);
 
-        var result = CreateValidator().Validate(request);
+        var result = await CreateValidator().ValidateAsync(request);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e =>
@@ -71,11 +80,11 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void ZeroQuantity_IsInvalid()
+    public async Task ZeroQuantity_IsInvalid()
     {
         var request = new CheckoutRequestDto([new CheckoutItemDto(CoffeeId, 0)]);
 
-        var result = CreateValidator().Validate(request);
+        var result = await CreateValidator().ValidateAsync(request);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e =>
@@ -83,11 +92,11 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void QuantityAboveStock_IsInvalid()
+    public async Task QuantityAboveStock_IsInvalid()
     {
         var request = new CheckoutRequestDto([new CheckoutItemDto(CoffeeId, 51)]);
 
-        var result = CreateValidator().Validate(request);
+        var result = await CreateValidator().ValidateAsync(request);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e =>
@@ -95,11 +104,11 @@ public class CheckoutValidationTests
     }
 
     [Fact]
-    public void ValidRequest_Passes()
+    public async Task ValidRequest_Passes()
     {
         var request = new CheckoutRequestDto([new CheckoutItemDto(CoffeeId, 2)]);
 
-        var result = CreateValidator().Validate(request);
+        var result = await CreateValidator().ValidateAsync(request);
 
         Assert.True(result.IsValid);
     }

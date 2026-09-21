@@ -1,7 +1,9 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using SuryPos.Api.Exceptions;
+using SuryPos.Data;
 using SuryPos.Data.Repositories;
 using SuryPos.Domain.Interfaces;
 using SuryPos.Service.Services;
@@ -26,21 +28,49 @@ builder.Services.AddControllers()
     });
 builder.Services.AddOpenApi();
 
-// 2. Register Dependency Injection (DI) - Repositories & Services
-builder.Services.AddSingleton<IProductRepository, ProductRepository>();
-builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
+// 2. Register Postgres (EF Core + snake_case naming)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .UseSnakeCaseNamingConvention());
+
+// 3. Register Dependency Injection (DI) - Repositories & Services
+// Scoped agar satu DbContext dipakai bersama dalam satu request/transaksi.
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 builder.Services.AddScoped<IPosService, PosService>();
 
-// 3. Register FluentValidation
+// 4. Register FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<CheckoutRequestValidator>();
 
-// 4. Register Global Exception Handler
+// 5. Register Global Exception Handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// 5. Configure HTTP Request Pipeline
+// 6. Migrasi / validasi database saat startup.
+// Database:AutoMigrate=true  -> jalankan Migrate() otomatis (default di Development).
+// Database:AutoMigrate=false -> validate-only, fail fast kalau ada migrasi pending.
+var autoMigrate = builder.Configuration.GetValue("Database:AutoMigrate", true);
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (autoMigrate)
+    {
+        await db.Database.MigrateAsync();
+    }
+    else
+    {
+        var pending = (await db.Database.GetPendingMigrationsAsync()).ToList();
+        if (pending.Count > 0)
+            throw new InvalidOperationException(
+                $"Ada migrasi database yang belum diterapkan: {string.Join(", ", pending)}. " +
+                "Jalankan 'dotnet ef database update' atau set Database:AutoMigrate=true.");
+    }
+}
+
+// 7. Configure HTTP Request Pipeline
 // Disarankan UseExceptionHandler dipasang di paling atas middleware pipeline
 app.UseExceptionHandler();
 

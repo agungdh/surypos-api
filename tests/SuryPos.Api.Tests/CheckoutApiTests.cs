@@ -61,7 +61,7 @@ public class CheckoutApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Post_UnknownProduct_Returns422_WithProductIdKey()
     {
         var response = await _client.PostAsync("/pos/checkout",
-            JsonBody("""{"items":[{"productId":"99999999-9999-9999-9999-999999999999","quantity":1}]}"""));
+            JsonBody("""{"items":[{"productId":9999,"quantity":1}]}"""));
         var body = await ParseAsync(response);
 
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
@@ -74,7 +74,7 @@ public class CheckoutApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Post_Overstock_Returns422_WithQuantityKey()
     {
         var response = await _client.PostAsync("/pos/checkout",
-            JsonBody("""{"items":[{"productId":"11111111-1111-1111-1111-111111111111","quantity":1222}]}"""));
+            JsonBody("""{"items":[{"productId":1,"quantity":1222}]}"""));
         var body = await ParseAsync(response);
 
         Assert.Equal((HttpStatusCode)422, response.StatusCode);
@@ -87,7 +87,7 @@ public class CheckoutApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Post_MalformedQuantity_Returns400()
     {
         var response = await _client.PostAsync("/pos/checkout",
-            JsonBody("""{"items":[{"productId":"11111111-1111-1111-1111-111111111111","quantity":"abc"}]}"""));
+            JsonBody("""{"items":[{"productId":1,"quantity":"abc"}]}"""));
         var body = await ParseAsync(response);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -99,7 +99,7 @@ public class CheckoutApiTests : IClassFixture<WebApplicationFactory<Program>>
     public async Task Post_ValidRequest_Returns200_WithTotals()
     {
         var response = await _client.PostAsync("/pos/checkout",
-            JsonBody("""{"items":[{"productId":"33333333-3333-3333-3333-333333333333","quantity":1}]}"""));
+            JsonBody("""{"items":[{"productId":3,"quantity":1}]}"""));
         var body = await ParseAsync(response);
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

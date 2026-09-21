@@ -3,7 +3,16 @@ LAUNCH_PROFILE := http
 
 .DEFAULT_GOAL := help
 
-.PHONY: help start watch dev run build restore clean test
+.PHONY: help start watch dev run build restore clean test up down migrate
+
+up: ## Nyalakan postgres via docker compose
+	docker compose up -d postgres
+
+down: ## Matikan semua service compose
+	docker compose down -v
+
+migrate: ## Terapkan EF migrations ke postgres lokal
+	dotnet ef database update --project src/SuryPos.Data --startup-project src/SuryPos.Api
 
 help: ## Tampilkan daftar perintah yang tersedia (default)
 	@echo "Usage: make [target]"

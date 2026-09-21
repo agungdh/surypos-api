@@ -22,21 +22,28 @@ public class CheckoutItemDtoValidator : AbstractValidator<CheckoutItemDto>
     public CheckoutItemDtoValidator(IProductRepository productRepo)
     {
         RuleFor(i => i.ProductId)
-            .NotEmpty().WithMessage("Product ID wajib diisi.")
-            .Must(id => productRepo.GetById(id) is not null)
-            .WithMessage(i => $"Produk dengan ID '{i.ProductId}' tidak ditemukan!");
+            .GreaterThan(0).WithMessage("Product ID wajib diisi.");
 
         RuleFor(i => i.Quantity)
-            .GreaterThan(0).WithMessage("Jumlah barang minimal 1 unit.")
-            .Must((item, qty) =>
+            .GreaterThan(0).WithMessage("Jumlah barang minimal 1 unit.");
+
+        // Cek eksistensi + stok dalam satu query async per item,
+        // supaya pesan error bisa memuat nama & sisa stok aktual.
+        RuleFor(i => i).CustomAsync(async (item, ctx, ct) =>
+        {
+            if (item.ProductId <= 0 || item.Quantity <= 0)
+                return; // Sudah ditangani rule di atas.
+
+            var product = await productRepo.GetByIdAsync(item.ProductId, ct);
+            if (product is null)
             {
-                var product = productRepo.GetById(item.ProductId);
-                return product is null || product.Stock >= qty;
-            })
-            .WithMessage(i =>
+                ctx.AddFailure("ProductId", $"Produk dengan ID '{item.ProductId}' tidak ditemukan!");
+            }
+            else if (product.Stock < item.Quantity)
             {
-                var product = productRepo.GetById(i.ProductId);
-                return $"Stok produk '{product?.Name}' tidak mencukupi! Sisa stok: {product?.Stock}";
-            });
+                ctx.AddFailure("Quantity",
+                    $"Stok produk '{product.Name}' tidak mencukupi! Sisa stok: {product.Stock}");
+            }
+        });
     }
 }

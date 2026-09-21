@@ -1,28 +1,24 @@
+using Microsoft.EntityFrameworkCore;
 using SuryPos.Domain.Entities;
 using SuryPos.Domain.Interfaces;
 
 namespace SuryPos.Data.Repositories;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(AppDbContext db) : IProductRepository
 {
-    // Dummy data produk kasir untuk pengujian
-    private static readonly List<Product> _products =
-    [
-        new Product { Id = Guid.Parse("11111111-1111-1111-1111-111111111111"), Name = "Kopi Susu Gula Aren", Price = 18000, Stock = 50 },
-        new Product { Id = Guid.Parse("22222222-2222-2222-2222-222222222222"), Name = "Croissant Cokelat", Price = 25000, Stock = 20 },
-        new Product { Id = Guid.Parse("33333333-3333-3333-3333-333333333333"), Name = "Air Mineral", Price = 5000, Stock = 100 }
-    ];
+    public Task<List<Product>> GetAllAsync(CancellationToken ct = default)
+        => db.Products.AsNoTracking().OrderBy(p => p.Id).ToListAsync(ct);
 
-    public IEnumerable<Product> GetAll() => _products;
+    public Task<Product?> GetByIdAsync(long id, CancellationToken ct = default)
+        => db.Products.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, ct);
 
-    public Product? GetById(Guid id) => _products.FirstOrDefault(p => p.Id == id);
-
-    public void UpdateStock(Guid id, int qtyToReduce)
+    public async Task<bool> TryDecreaseStockAsync(long id, int qtyToReduce, CancellationToken ct = default)
     {
-        // Validator menjamin produk ada. Kalau hilang di sini (race/gangguan),
-        // lempar agar jadi 5xx, jangan diam-diam.
-        var product = GetById(id)
-            ?? throw new InvalidOperationException($"Produk dengan ID '{id}' tidak ditemukan saat pengurangan stok!");
-        product.Stock -= qtyToReduce;
+        var affected = await db.Products
+            .Where(p => p.Id == id && p.Stock >= qtyToReduce)
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(p => p.Stock, p => p.Stock - qtyToReduce),
+                ct);
+        return affected == 1;
     }
 }

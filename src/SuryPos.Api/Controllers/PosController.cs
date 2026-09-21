@@ -9,18 +9,18 @@ namespace SuryPos.Api.Controllers;
 public class PosController(IPosService posService) : ControllerBase
 {
     [HttpGet("products")]
-    public IActionResult GetProducts()
+    public async Task<IActionResult> GetProducts(CancellationToken ct)
     {
-        var products = posService.GetProducts();
+        var products = await posService.GetProductsAsync(ct);
         return Ok(products);
     }
 
     [HttpPost("checkout")]
-    public IActionResult Checkout([FromBody] CheckoutRequestDto request)
+    public async Task<IActionResult> Checkout([FromBody] CheckoutRequestDto request, CancellationToken ct)
     {
-        // Tanpa try-catch! 
+        // Tanpa try-catch!
         // Kalau terjadi error, biarkan exception meluncur ke GlobalExceptionHandler
-        var result = posService.Checkout(request);
+        var result = await posService.CheckoutAsync(request, ct);
         return Ok(result);
     }
 }
